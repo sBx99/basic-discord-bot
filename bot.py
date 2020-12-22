@@ -39,6 +39,13 @@ async def on_message(msg):
             await msg.delete()
             # await ctx.send('your message got deleted because it contained an nsfw word. 🤫🤫🤫')
 
+    # react with emoji if msg is emoji
+    if ':' == msg.content[0] and ':' == msg.content[-1]:
+        try:
+            await msg.channel.send(f'{ msg.content }')
+        except:
+            await msg.channel.send("aww no :( i tried to send you the same emoji back but it seems like i don't have it")
+
     await client.process_commands(msg)
 
 # command error

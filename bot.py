@@ -4,7 +4,7 @@ import random
 import sys
 sys.path.insert(1, './imports/reddit')
 
-from reddit_imgs import img_urls
+from reddit_links import img_urls
 from settings import discord_credentials, reddit_credentials
 
 DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_PUBLIC_KEY, DISCORD_TOKEN = discord_credentials()
@@ -162,17 +162,14 @@ FUN STUFF
 
 # RANDOM TRENDING IMAGE FROM SUBREDDIT
 @client.command()
-async def image(ctx, *sub_name: str):
+async def image(ctx):
     embed = discord.Embed(color=discord.Colour.red())
-    if sub_name == ():
-            await ctx.send('**Please enter a search term**')
-    elif sub_name[0] != ():
-        images = img_urls(sub_name, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
-        total_imgs = len(images)
-        random_link = images[random.randint(0, total_imgs)]
-        embed.set_image(url=random_link)
-        await ctx.send(embed=embed)
-
+    images = img_urls(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
+    total_imgs = len(images)
+    random_link = images[random.randint(0, total_imgs)]
+    embed.set_image(url=random_link)
+    embed.set_footer(icon_url=ctx.author.avatar_url, text=f'requested by { ctx.author.name }')
+    await ctx.send(embed=embed)
 
 # close all open files
 f1.close()

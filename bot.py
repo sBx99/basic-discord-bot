@@ -1,20 +1,17 @@
-from dotenv import load_dotenv
-from pathlib import Path
-import os
-
 import discord
 from discord.ext import commands
+import random
+import sys
+sys.path.insert(1, './imports/reddit')
 
-# fetch environment variables from .env file
-env_path = Path('.env')
-load_dotenv(dotenv_path=env_path)
-TOKEN = os.getenv('TOKEN')
-CLIENT_ID = os.getenv('CLIENT_ID')
-CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-PUBLIC_KEY = os.getenv('PUBLIC_KEY')
+from reddit_imgs import img_urls
+from settings import discord_credentials, reddit_credentials
+
+DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_PUBLIC_KEY, DISCORD_TOKEN = discord_credentials()
+REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT = reddit_credentials()
 
 # run the bot
-client = commands.Bot(command_prefix='~~')
+client = commands.Bot(command_prefix='bot ')
 
 '''
 EVENTS
@@ -117,9 +114,9 @@ async def clear(ctx, amount=2):
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member:discord.Member, *, reason='no reason provided :/'):
     try:
-        await member.send(f'{{}} has been kicked from this community, because {{}}'.format(member.name, reason))
+        await member.send(f'{ member.name } has been kicked from this community, because { reason }')
     except:
-        await ctx.send(f'oops! it seems like {{}} has closed their dms'.format(member.name))
+        await ctx.send(f'oops! it seems like { member.name } has closed their dms')
     await member.kick(reason=reason)
 
 # BAN MEMBERS
@@ -127,9 +124,9 @@ async def kick(ctx, member:discord.Member, *, reason='no reason provided :/'):
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member:discord.Member, *, reason='no reason provided :/'):
     try:
-        await member.send(f'{{}} has been banned from this community, because {{}}'.format(member.name, reason))
+        await member.send(f'{ member.name } has been banned from this community, because { reason }')
     except:
-        await ctx.send(f'oops! it seems like {{}} has closed their dms'.format(member.name))
+        await ctx.send(f'oops! it seems like { member.name } has closed their dms')
     await member.ban(reason=reason)
 
 # UNBAN MEMBERS
@@ -144,23 +141,42 @@ async def unban(ctx, *, member:discord.Member):
 
         if (user.name, user.discrimiator) == (member_name, member_disc):
             await ctx.guild.unban(user)
-            await ctx.send(f'{{}} has been unbanned!'.format(member_name))
+            await ctx.send(f'{ member_name } has been unbanned!')
             return
 
-    await ctx.send(f"{{}} wasn't found :(".format(member))
+    await ctx.send(f"{ member } wasn't found :(")
 
 # MUTE MEMBERS
 @client.command(aliases=['m'])
 @commands.has_permissions(kick_members=True)
 async def mute(ctx, member:discord.Member):
-    muted_role = ctx.guild.get_role(CLIENT_ID)
+    muted_role = ctx.guild.get_role(DISCORD_CLIENT_ID)
 
     await member.add_roles(muted_role)
-    await ctx.send(f'{{}} has been muted'.format(member.mention))
+    await ctx.send(f'{ member.mention } has been muted')
+
+'''
+FUN STUFF
+1. Return Random Trending Images from a Subreddit
+'''
+
+# RANDOM TRENDING IMAGE FROM SUBREDDIT
+@client.command()
+async def image(ctx, *sub_name: str):
+    embed = discord.Embed(color=discord.Colour.red())
+    if sub_name == ():
+            await ctx.send('**Please enter a search term**')
+    elif sub_name[0] != ():
+        images = img_urls(sub_name, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
+        total_imgs = len(images)
+        random_link = images[random.randint(0, total_imgs)]
+        embed.set_image(url=random_link)
+        await ctx.send(embed=embed)
+
 
 # close all open files
 f1.close()
 f2.close()
 
 # run the bot
-client.run(TOKEN)
+client.run(DISCORD_TOKEN)

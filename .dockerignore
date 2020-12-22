@@ -1,0 +1,13 @@
+# files
+.gitignore
+bash.sh
+
+# environments
+my_env/
+my_env
+
+# python/vscode
+__pycache__/
+__pycache__
+.vscode/
+.vscode

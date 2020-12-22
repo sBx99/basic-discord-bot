@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Added custom files to be ignored by git
+my_env/
+my_env
+.env

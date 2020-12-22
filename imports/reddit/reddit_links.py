@@ -1,7 +1,6 @@
 # function to create dataframe of posts and to scrape image urls from reddit
-import urllib.parse
-import random
-import pandas as pd
+from random import randint
+from pandas import DataFrame
 from praw import Reddit
 
 def img_urls(CLIENT_ID, CLIENT_SECRET, USER_AGENT):
@@ -12,7 +11,7 @@ def img_urls(CLIENT_ID, CLIENT_SECRET, USER_AGENT):
 
     # list of meme-worthy subreddits
     sub_names = ['meirl', 'MemeEconomy']
-    sub_name = sub_names[random.randint(0, len(sub_names))]
+    sub_name = sub_names[randint(0, len(sub_names))]
 
     collected_posts = []
     sub = reddit.subreddit(sub_name)
@@ -20,8 +19,7 @@ def img_urls(CLIENT_ID, CLIENT_SECRET, USER_AGENT):
     for post in sub.hot(limit=100):
         collected_posts.append([post.url])
 
-    posts = pd.DataFrame(
-        collected_posts, columns=['url'])
+    posts = DataFrame(collected_posts, columns=['url'])
 
     image_urls = [x for x in posts.url if x.endswith(('jpg', 'jpeg', 'png'))]
 

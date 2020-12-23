@@ -12,6 +12,7 @@ REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT = reddit_credentials()
 
 # run the bot
 client = commands.Bot(command_prefix='bot ')
+client.remove_command('help')
 
 '''
 EVENTS
@@ -39,13 +40,6 @@ async def on_message(msg):
             await msg.delete()
             # await ctx.send('your message got deleted because it contained an nsfw word. 🤫🤫🤫')
 
-    # react with emoji if msg is emoji
-    if ':' == msg.content[0] and ':' == msg.content[-1]:
-        try:
-            await msg.channel.send(f'{ msg.content }')
-        except:
-            await msg.channel.send("aww no :( i tried to send you the same emoji back but it seems like i don't have it")
-
     await client.process_commands(msg)
 
 # command error
@@ -66,39 +60,69 @@ async def on_command_error(ctx, error):
 # ctx == context
 
 '''
+CUSTOM HELP COMMAND
+- Changing the Default Command
+'''
+
+# CUSTOM HELP COMMAND
+@client.group(invoke_without_command=True)
+async def help(ctx):
+    embed = discord.Embed(
+        title='**help**',
+        description='use ``bot help <command>`` for more information',
+        color=discord.Colour(0x53AFF0)
+    )
+    embed.add_field(name="introduction", value="hello, whois, rules", inline=False)
+    embed.add_field(name="moderation", value="clear, mute, kick, ban, unban", inline=False)
+    embed.add_field(name="memes", value="reddit", inline=False)
+    await ctx.send(embed=embed)
+
+# hello
+@help.command()
+async def hello(ctx):
+    embed = discord.Embed(
+        title="``hello``",
+        description="an introduction to meme-a-tron-2000",
+        color=discord.Colour(0x53AFF0))
+    embed.add_field(
+        name="*syntax*",
+        value="bot hello"
+        )
+    await ctx.send(embed=embed)
+
+# whois
+@help.command()
+@commands.has_permissions(kick_members=True)
+async def whois(ctx, member: discord.Member):
+    embed = discord.Embed(
+        title="``whois``",
+        description="find out more about a member",
+        color=discord.Colour(0x53AFF0))
+    embed.add_field(
+        name="*syntax*",
+        value="bot whois @<member>"
+        )
+    await ctx.send(embed=embed)
+
+'''
 INTRODUCTORY COMMANDS
 1. Welcome/Introduction Nessage
-2. Help Command
+2. User Information
+3. Server Rules
 '''
 
 # INTRODUCTION
 @client.command(aliases=['hello', 'hi'])
 async def hey(ctx):
-    await ctx.send('hey there! i am meme-a-tron-2000, at your service with some freshly generated memes!')
-
-# HELP
-@client.command(aliases=['pls'])
-async def helpme(ctx):
-    await ctx.send('these are the commands you can use: \n')
-
-'''
-MODERATION COMMANDS
-1. Server Rules
-2. User Information
-3. Clear Messages
-4. Kick Members
-5. Ban Members
-6. Unban Members
-7. Mute Members
-'''
-
-# SERVER RULES
-f2 = open('./commands/rules.txt', 'r')
-rules = f2.readlines()
-
-@client.command(aliases=['rules'])
-async def rule(ctx, *, num):
-    await ctx.send(rules[int(num) - 1])
+    embed = discord.Embed(
+        title="hey there!",
+        url="https://koodos.com/",
+        description="i am **meme-a-tron-2000**, ✨ a drop from the koodos collective ✨, at your service with some freshly generated memes!",
+        color=0x47EED2
+    )
+    embed.set_thumbnail(url="https://koodos.com/koodos_logo.png")
+    embed.set_footer(icon_url=ctx.author.avatar_url, text=f'requested by { ctx.author.name }')
+    await ctx.send(embed=embed)
 
 # USER INFORMATION
 @client.command(aliases=['user', 'info', 'whomst'])
@@ -110,11 +134,38 @@ async def whois(ctx, member:discord.Member):
     embed.set_footer(icon_url=ctx.author.avatar_url, text=f'requested by { ctx.author.name }')
     await ctx.send(embed=embed)
 
+# SERVER RULES
+f2 = open('./commands/rules.txt', 'r')
+rules = f2.readlines()
+
+@client.command(aliases=['rules'])
+async def rule(ctx, *, num):
+    await ctx.send(rules[int(num) - 1])
+
+'''
+MODERATION COMMANDS
+1. Clear Messages
+2. Mute Members
+3. Kick Members
+4. Ban Members
+5. Unban Members
+'''
+
 # CLEAR MESSAGES
 @client.command(aliases=['c'])
 @commands.has_permissions(manage_messages=True) # can only be done if you have permission to manage messages on this server
 async def clear(ctx, amount=2):
     await ctx.channel.purge(limit=amount)
+
+
+# MUTE MEMBERS
+@client.command(aliases=['m'])
+@commands.has_permissions(kick_members=True)
+async def mute(ctx, member:discord.Member):
+    muted_role = ctx.guild.get_role(DISCORD_CLIENT_ID)
+
+    await member.add_roles(muted_role)
+    await ctx.send(f'{ member.mention } has been muted')
 
 # KICK MEMBERS
 @client.command(aliases=['k'])
@@ -153,14 +204,6 @@ async def unban(ctx, *, member:discord.Member):
 
     await ctx.send(f"{ member } wasn't found :(")
 
-# MUTE MEMBERS
-@client.command(aliases=['m'])
-@commands.has_permissions(kick_members=True)
-async def mute(ctx, member:discord.Member):
-    muted_role = ctx.guild.get_role(DISCORD_CLIENT_ID)
-
-    await member.add_roles(muted_role)
-    await ctx.send(f'{ member.mention } has been muted')
 
 '''
 FUN STUFF
@@ -168,13 +211,14 @@ FUN STUFF
 '''
 
 # RANDOM TRENDING IMAGE FROM SUBREDDIT
-@client.command()
-async def image(ctx):
-    embed = discord.Embed(color=discord.Colour.red())
-    images = img_urls(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
+@client.command(aliases=['meme'])
+async def reddit(ctx):
+    embed = discord.Embed(title="a random meme from reddit <3", color=discord.Colour(0xFF4500))
+    images, subreddit = img_urls(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
     total_imgs = len(images)
-    random_link = images[random.randint(0, total_imgs)]
+    random_link = images[random.randint(0, total_imgs - 1)]
     embed.set_image(url=random_link)
+    embed.add_field(name='*subreddit*', value=f'``{ subreddit }``', inline=False)
     embed.set_footer(icon_url=ctx.author.avatar_url, text=f'requested by { ctx.author.name }')
     await ctx.send(embed=embed)
 

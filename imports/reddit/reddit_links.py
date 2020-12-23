@@ -10,8 +10,18 @@ def img_urls(CLIENT_ID, CLIENT_SECRET, USER_AGENT):
         user_agent=USER_AGENT)
 
     # list of meme-worthy subreddits
-    sub_names = ['meirl', 'MemeEconomy']
-    sub_name = sub_names[randint(0, len(sub_names))]
+    sub_names = [
+        'meirl',
+        'funny',
+        'MemeEconomy',
+        'meme',
+        'memes',
+        'dankmemes',
+        'Memes_Of_The_Dank',
+        'emojipasta',
+        'redditmoment']
+
+    sub_name = sub_names[randint(0, len(sub_names) - 1)]
 
     collected_posts = []
     sub = reddit.subreddit(sub_name)
@@ -23,7 +33,7 @@ def img_urls(CLIENT_ID, CLIENT_SECRET, USER_AGENT):
 
     image_urls = [x for x in posts.url if x.endswith(('jpg', 'jpeg', 'png'))]
 
-    return image_urls
+    return image_urls, sub_name
 
 '''
 # to test

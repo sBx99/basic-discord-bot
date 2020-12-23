@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import random
 import sys
-sys.path.insert(1, './imports/reddit')
+sys.path.insert(1, './imports')
 
 from reddit_links import img_urls
 from settings import discord_credentials, reddit_credentials
@@ -57,7 +57,6 @@ async def on_command_error(ctx, error):
         raise error
 
 # COMMANDS
-# ctx == context
 
 '''
 CUSTOM HELP COMMAND
@@ -74,7 +73,7 @@ async def help(ctx):
     )
     embed.add_field(name="introduction", value="hello, whois, rules", inline=False)
     embed.add_field(name="moderation", value="clear, mute, kick, ban, unban", inline=False)
-    embed.add_field(name="memes", value="reddit", inline=False)
+    embed.add_field(name="memes", value="reddit, starter", inline=False)
     await ctx.send(embed=embed)
 
 # hello
@@ -208,6 +207,7 @@ async def unban(ctx, *, member:discord.Member):
 '''
 FUN STUFF
 1. Return Random Trending Images from a Subreddit
+2. Trying out PIL
 '''
 
 # RANDOM TRENDING IMAGE FROM SUBREDDIT
@@ -221,6 +221,32 @@ async def reddit(ctx):
     embed.add_field(name='*subreddit*', value=f'``{ subreddit }``', inline=False)
     embed.set_footer(icon_url=ctx.author.avatar_url, text=f'requested by { ctx.author.name }')
     await ctx.send(embed=embed)
+
+# TRYING OUT PIL
+from PIL import Image
+from io import BytesIO
+
+@client.command(aliases=['starterkit', 'starter', 'kit'])
+async def starter_kit(ctx, user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+
+    sk_img = Image.open('./images/input/starter_pack.png')
+    asset = user.avatar_url_as(size=128)
+    data = BytesIO(await asset.read())
+    # data = '../images/input/pfp128.png'
+    pfp = Image.open(data)
+    pfp = pfp.resize((200, 200))
+
+    sk_img.paste(pfp, (396, 198))
+    new_img_path = f'./images/output/{ user.name }_starter_kit.png'
+    # new_img_path = f'./images/output/{ author }_starter_kit.png'
+    sk_img.save(new_img_path)
+
+    await ctx.send(file=discord.File(new_img_path))
+
+    # to-do - get random starter kit images from reddit and use any one as a starter kit image
+
 
 # close all open files
 f1.close()
